@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的第一個 Vercel + GitHub 專案</title>
+    <style>
+        /* CSS 樣式放在這裡 */
+        :root {
+            --primary-color: #0070f3; /* Vercel 藍色 */
+            --background-color: #f8f8f8;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* 確保內容垂直居中 */
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .button:hover {
+            background-color: #005bb5;
+        }
+
+        #status-message {
+            margin-top: 25px;
+            font-weight: bold;
+            color: #28a745; /* 綠色 */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👋 歡迎來到我的 Vercel 專案！</h1>
+        <p>這是一個簡單的網頁介面，由 **GitHub** 託管，並透過 **Vercel** 自動部署上線。</p>
+        <p>這證明了您的部署管道 (Pipeline) 已經成功運作！</p>
+        
+        <button id="actionButton" class="button">點擊我來確認</button>
+        
+        <div id="status-message">等待確認...</div>
+
+        <footer>
+            <small>程式碼位於 GitHub / 部署於 Vercel</small>
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript 腳本放在這裡
+        document.getElementById('actionButton').addEventListener('click', function() {
+            const statusMessage = document.getElementById('status-message');
+            const now = new Date();
+            
+            // 點擊後更新訊息
+            statusMessage.textContent = '✅ 確認成功！最後點擊時間：' + now.toLocaleTimeString('zh-Hant');
+            statusMessage.style.color = '#dc3545'; // 換成紅色，讓使用者看到變化
+
+            // 1秒後換回綠色
+            setTimeout(() => {
+                statusMessage.style.color = '#28a745';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
