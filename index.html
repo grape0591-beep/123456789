@@ -12,6 +12,7 @@
             --text-color: #333;
             --success-color: #28a745;
             --attention-color: #dc3545;
+            --info-color: #ff9800; /* 橙色用於範圍提示 */
         }
 
         body {
@@ -35,17 +36,15 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 90%;
-            transition: opacity 0.5s ease; /* 添加過渡效果 */
+            transition: opacity 0.5s ease;
         }
         
-        /* 讓初始歡迎畫面預設顯示 */
         #welcome-screen {
             display: block; 
         }
 
-        /* 新增遊戲畫面樣式 */
         #game-screen {
-            display: none; /* 遊戲畫面預設隱藏 */
+            display: none;
             text-align: left;
         }
 
@@ -101,10 +100,17 @@
             min-height: 24px;
             text-align: center;
         }
-        /* 讓文字顏色能顯示變數 */
+        #currentRange {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--info-color); /* 突出顯示範圍提示 */
+            margin-bottom: 15px;
+        }
+        /* 顏色類別 */
         .color-success { color: var(--success-color); }
         .color-attention { color: var(--attention-color); }
         .color-primary { color: var(--primary-color); }
+        .color-info { color: var(--info-color); }
 
     </style>
 </head>
@@ -125,7 +131,9 @@
 
     <div id="game-screen" class="container">
         <h1 class="color-primary">🧠 猜數字遊戲</h1>
-        <p>我已經選好了一個 **1 到 100** 之間的數字。請輸入你的猜測：</p>
+        <p>我已經選好了一個 1 到 100 之間的數字。請輸入你的猜測：</p>
+        
+        <div id="currentRange" class="color-info">當前範圍：1 到 100</div>
         
         <div style="text-align: center;">
             <input type="number" id="guessInput" min="1" max="100" placeholder="輸入 1~100">
@@ -149,35 +157,50 @@
         const resultMessage = document.getElementById('resultMessage');
         const attemptsLeft = document.getElementById('attemptsLeft');
         const resetGameButton = document.getElementById('resetGameButton');
+        const currentRangeDisplay = document.getElementById('currentRange'); // 新增：顯示範圍的元素
 
         let targetNumber;
         let attempts;
-        const maxAttempts = 7; // 設定最大嘗試次數
+        const maxAttempts = 7; 
+        
+        // 新增：追蹤最小和最大範圍
+        let minRange;
+        let maxRange;
+
+        // 更新範圍顯示
+        function updateRangeDisplay() {
+            currentRangeDisplay.textContent = `當前範圍：${minRange} 到 ${maxRange}`;
+            guessInput.min = minRange; // 更新輸入框的最小/最大屬性
+            guessInput.max = maxRange;
+        }
 
         // 初始化遊戲狀態
         function initializeGame() {
-            // 隨機生成 1 到 100 的整數
             targetNumber = Math.floor(Math.random() * 100) + 1;
             attempts = 0;
+            minRange = 1;
+            maxRange = 100;
+            
             resultMessage.textContent = '請輸入您的猜測。';
-            resultMessage.className = 'color-primary'; // 初始使用 primary 顏色
+            resultMessage.className = 'color-primary';
             attemptsLeft.textContent = `您還有 ${maxAttempts - attempts} 次機會。`;
             guessInput.value = '';
             guessInput.disabled = false;
             submitGuessButton.disabled = false;
-            guessInput.focus(); // 讓輸入框自動獲得焦點
+            
+            updateRangeDisplay(); // 初始化範圍顯示
+            guessInput.focus();
         }
 
         // 檢查猜測數字的函式
         function checkGuess() {
-            // 如果按鈕被禁用，則不執行
             if (submitGuessButton.disabled) return;
             
             const userGuess = parseInt(guessInput.value);
 
-            // 檢查輸入是否有效
-            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
-                resultMessage.textContent = '⛔ 請輸入一個有效的 1 到 100 之間的數字！';
+            // 檢查輸入是否有效，並檢查是否在當前範圍內
+            if (isNaN(userGuess) || userGuess < minRange || userGuess > maxRange) {
+                resultMessage.textContent = `⛔ 請輸入一個有效的 ${minRange} 到 ${maxRange} 之間的數字！`;
                 resultMessage.className = 'color-attention';
                 return;
             }
@@ -194,7 +217,18 @@
             } 
             // 猜錯
             else {
-                let message = userGuess < targetNumber ? '📈 太小了！請再猜大一點。' : '📉 太大了！請再猜小一點。';
+                // 根據猜測結果縮小範圍
+                if (userGuess < targetNumber) {
+                    // 如果猜小了，則將最小範圍更新為 userGuess + 1
+                    minRange = userGuess + 1;
+                    resultMessage.textContent = '📈 太小了！範圍已更新。';
+                } else {
+                    // 如果猜大了，則將最大範圍更新為 userGuess - 1
+                    maxRange = userGuess - 1;
+                    resultMessage.textContent = '📉 太大了！範圍已更新。';
+                }
+                
+                updateRangeDisplay(); // 更新範圍顯示
                 
                 if (remainingAttempts === 0) {
                     // 機會用完
@@ -204,25 +238,22 @@
                     submitGuessButton.disabled = true;
                 } else {
                     // 繼續猜
-                    resultMessage.textContent = message;
-                    // 剩餘機會少於等於2次時，提示顏色換成警告色
                     resultMessage.className = remainingAttempts <= 2 ? 'color-attention' : 'color-primary'; 
                 }
             }
 
             attemptsLeft.textContent = `您還有 ${remainingAttempts} 次機會。`;
-            guessInput.value = ''; // 清空輸入框
-            guessInput.focus(); // 讓輸入框保持焦點
+            guessInput.value = '';
+            guessInput.focus();
         }
 
         // --- 事件監聽器 ---
 
         // 1. 點擊開始遊戲按鈕 (切換畫面)
         startGameButton.addEventListener('click', function() {
-            // 隱藏歡迎畫面，顯示遊戲畫面
             welcomeScreen.style.display = 'none';
             gameScreen.style.display = 'block';
-            initializeGame(); // 初始化遊戲
+            initializeGame();
         });
 
         // 2. 點擊「猜！」按鈕
@@ -230,9 +261,8 @@
 
         // 3. 在輸入框按 Enter 鍵也可以猜
         guessInput.addEventListener('keypress', function(e) {
-            // 確保按 Enter 時執行 checkGuess
             if (e.key === 'Enter') {
-                e.preventDefault(); // 阻止表單預設提交行為
+                e.preventDefault();
                 checkGuess();
             }
         });
@@ -240,9 +270,8 @@
         // 4. 點擊「重新開始」按鈕
         resetGameButton.addEventListener('click', initializeGame);
 
-        // 初始化狀態訊息 (讓第一個畫面有動作，如同原本的程式碼)
-        const statusMessage = document.getElementById('status-message');
-        statusMessage.textContent = '等待確認...';
+        // 初始狀態訊息
+        document.getElementById('status-message').textContent = '等待確認...';
 
     </script>
 </body>
